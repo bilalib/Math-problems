@@ -340,3 +340,5 @@ ASALocalRun/
 healthchecksdb
 /Math problems.sln
 /Math problems/Math problems.pyproj
+/Math problems/data.txt
+/Math problems/history_json.txt

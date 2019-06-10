@@ -1,1 +1,5 @@
-from Problem import Problem
+from ProgramWindow import Dialog
+
+def main():
+    print("Cool")
+    Dialog()
