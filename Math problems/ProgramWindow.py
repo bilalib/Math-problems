@@ -3,7 +3,6 @@ import sys
 from PyQt5.QtWidgets import (QApplication, QWidget, QLineEdit, QPushButton,
                              QLabel, QVBoxLayout, QHBoxLayout)
 from PyQt5.QtCore import Qt
-import time
 
 
 class Window(QWidget):
@@ -16,6 +15,8 @@ class Window(QWidget):
 
     def initUi(self):
         self.problem = Problem()
+        self.hard_mode = False
+
         self.setWindowTitle("Math Problem")
         self.setStyleSheet("QWidget {font: 20pt calibri}")
         self.layout = QVBoxLayout()
@@ -41,12 +42,14 @@ class Window(QWidget):
 
         # Problem statement label
         self.lbl_statement = QLabel(self.problem.statement)
-        self.lbl_statement.setWordWrap(True)
         self.layout.addWidget(self.lbl_statement)
         
         
         # Stretch moves rest to bottom of page
         self.layout.addStretch()
+
+        # Switch mode
+        self.btn_mode = QPushButton("Activate hard mode")
 
         # Messages label
         self.lbl_message = QLabel()
@@ -65,14 +68,15 @@ class Window(QWidget):
             self.problem = Problem()
             self.lbl_statement.setText(self.problem.statement)
         if self.problem.result == "incorrect":
-            if self.problem.attempt == 3:
+            if self.problem.attempt == 2:
                 self.problem.pose()
                 self.lbl_statement.setText(self.problem.statement)
                 self.lbl_message.setText("Incorrect. All attempts used. Numbers changed.")
             else:
-                self.lbl_message.setText("Incorrect. " + str(self.problem.attempt) 
-                                         + "/3 attempts used. Previous answers: " +
-                                         str(self.problem.previous_answers))
+                self.lbl_message.setText("Incorrect. Attempt " + 
+                                         str(self.problem.attempt + 1) + 
+                                         "/3. Previous answers: " + 
+                                         ", ".join(self.problem.previous_answers))
 
 
 def main(args):
