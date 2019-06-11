@@ -4,10 +4,10 @@ from fractions import Fraction
 import re
 import json
 from datetime import datetime
+import time
 
 HISTORY_FILE_NAME = "history_json.txt"
 ERROR_MARGIN = 0.1
-VALUE_ERROR = -1
 
 class Problem(object):
 
@@ -25,6 +25,7 @@ class Problem(object):
     num_problems = len(problems)
     filler_templates = list()
 
+    # Creates a template for each question for generat_filler() to use
     for elt in problems.values():
         elt = re.findall("\{.*?\}", elt)
         already_filled = set()
@@ -44,76 +45,105 @@ class Problem(object):
     def __init__(self):
         self.idx = random.randint(0, Problem.num_problems - 1)
         self.filler = tuple()
-        self.soln = int()
+        self.soln, self.soln_frac = int(), int()
         self.statement = str()
         self.attempt = 0
-        self.correct = False
+        self.pose_time, self.check_time = int(), int()
+        self.result = str()
+        self.pose()
+        self.previous_answers = list()
 
     def solve(self):
         f = self.filler
         solutions = {
             0: lambda: (f[1] + f[3] / f[4] - f[6] / f[7]) * f[8], 
-            1: lambda: f[6] / (f[1] + f[3] * f[4] / f[5]), 
-            2: lambda: (f[-1] - f[1] / f[2]) / (f[3] / f[4]), 
+            1: lambda: (f[-1] - f[1] / f[2]) / (f[3] / f[4]), 
+            2: lambda: f[6] / (f[1] + f[3] * f[4] / f[5]), 
             3: lambda: -f[0] + f[1] - f[2] + f[3], 
             4: lambda: f[0] - f[1] - f[2] + f[3],
             5: lambda: f[0] / f[1]
             }
-        self.soln = solutions[self.idx]()
 
+        self.soln = solutions[self.idx]()
+        self.soln_frac = Fraction(self.soln).limit_denominator()
+    
+    # Randomly generates numbers and names for the problem
     def generate_filler(self):
         number_range = tuple(i for i in range(-20, 11) if i <= -3 or 3 <= i) \
                        if self.idx in Problem.provide_negatives else range(3, 21)
         filler = list()
+
         for elt in Problem.filler_templates[self.idx]:
             if elt[1] == "s":
                 fill_value = names.get_first_name()
                 event = random.randint(0, 10)
-                if event == 0:
-                    fill_value = "Lil' " + fill_value
-                elif event == 1:
-                    fill_value = "Swaglord " + fill_value
+                events = {0: "Lil' ", 1: "Swag Lord "}
+                fill_value = events.get(event, "") + fill_value
             else:
                 fill_value = random.choice(number_range)
             filler.append(fill_value)
-        self.filler = filler
 
+        self.filler = filler
+    
+    # Creates the problem statement
     def pose(self):
+        self.attempt = 0
+        self.previous_answers = list()
         self.generate_filler()
         self.solve()
-        while (self.idx in Problem.normal_solutions and self.float_soln < 1) \
-               or len(str(Fraction(self.soln).limit_denominator())) > 4 \
-               or abs(self.soln) > 30:
+
+        # Makes sure that the solution isn't too complex
+        while ((self.idx in Problem.normal_solutions and self.soln < 1) 
+               or len(str(self.soln_frac)) > 4 
+               or abs(self.soln) > 30):
             self.generate_filler()
             self.solve()
-        self.statement = Problem.problems[self.idx].format(*self.filler)
 
+        self.statement = Problem.problems[self.idx].format(*self.filler)
+        self.pose_time = time.time()
+
+    # Checks the user input against the soulution and saves the result.
     def check(self, input):
         try:
+            # Converts answer
             if " " in input:
-                input = input.partition(" ")
-                input = int(input[0]) + Fraction(input[2]).limit_denominator()
+                input_float = input.partition(" ")
+                input_float = int(input_float[0]) + Fraction(
+                               input_float[2]).limit_denominator()
             else:
-                input = Fraction(input).limit_denominator()
+                input_float = float(Fraction(input).limit_denominator())
+
+            # Checks answer
+            if abs(input_float - self.soln) < ERROR_MARGIN:
+                self.result = "correct"
+            else:
+                self.result = "incorrect"
+                self.previous_answers.append(input)
+                self.attempt += 1
         except ValueError:
-            self.correct = VALUE_ERROR
+            self.result = "ValueError"
+            input_float = input
 
-        if abs(float(input) - self.soln) < ERROR_MARGIN:
-            self.correct = True
-        else:
-            self.attempt += 1
+        self.check_time = time.time()
+        self.save_result(input_float, self.result)
 
-    def save_result(self, input):
+    # Appends the result as a dictionary to a list in the json file
+    def save_result(self, input_float, result):
         now = datetime.now()
-        result = {"date": now.strftime("%m/%d/%Y"),
-                  "time": now.strftime("%I:%M %p"), "idx": self.idx,
-                  "attempt": self.attempt, "soln": self.float_soln,
-                  "input": input, "correct": self.correct}
+        sec_taken = round(self.check_time - self.pose_time)
+
+        result = {"date": now.strftime("%m/%d/%Y"), 
+                  "time": now.strftime("%I:%M %p"), 
+                  "idx": self.idx,       "attempt": self.attempt, 
+                  "soln": self.soln,     "input": input_float, 
+                  "result": self.result, "sec_taken": sec_taken}
+
         try:
             with open(HISTORY_FILE_NAME) as history_file:
                 history = json.load(history_file)
         except (EOFError, ValueError, FileNotFoundError) as _:
             history = list()
+
         with open(HISTORY_FILE_NAME, "w") as history_file:
             history.append(result)
             json.dump(history, history_file, indent=1)
