@@ -12,13 +12,12 @@ ERROR_MARGIN = 0.1
 class Problem(object):
 
     problems = {
-        0: "{:s} makes ${:d} per hour. {:s} makes {:d}/{:d} times that much every half hour. How much money will they have in {:d} hours?",
-        1: "{:s} is {:d}/{:d} ft tall and grows {:d}/{:d} inches a week. How many days until he/she is {:d} ft tall?",
+        0: "{:s} makes ${:d} per hour. {:s} makes {:d}/{:d} times that much every hour. How much total money will they have in {:d} hours?",
+        1: "{:s} is {:d}/{:d} ft tall and grows {:d}/{:d} inches a week. How many weeks until he/she is {:d} ft tall?",
         2: "{0:s} mows {1:d} lawns an hour. {2:s} mowes {3:d} lawns every {4:d}/{5:d} hours. How long until they mow {6:d} lawns?",
         3: "-{:d}+{:d}-{:d}+{:d}", 4: "{:d}-{:d}-{:d}+{:d}", 5: "{:d}/{:d}", 6: "{:d}*{:d}",
         7: "{0:s}'s cup has {1:d} mL of water and leaks {2:d}/{3:d} mL per second. How long until {0:s} has {4:d} mL of water left?",
-        8: "{:d} squared",
-        9: "{:d}x + {:d} = {:d}"
+        8: "What is {:d} squared?", 9: "Solve for x. {:d}x + {:d} = {:d}"
         }  
 
 
@@ -45,13 +44,14 @@ class Problem(object):
         filler_templates.append(elt)
 
     def __init__(self):
-        self.idx = random.randint(0, len(self.problems))
+        self.idx = random.randint(0, len(self.problems) - 1)
         self.filler = tuple()
         self.statement = str()
         self.soln, self.soln_frac = int(), str()
 
         self.attempt = -1
         self.time_posed, self.sec_total = int(), int()
+        self.time_created = datetime.now()
 
         self.pose()
         self.result = str()
@@ -60,15 +60,16 @@ class Problem(object):
     def solve(self):
         f = self.filler
         solutions = {
-            0: lambda: (f[1] + f[3] / f[4]) * 5, 
-            1: lambda: 7 * (f[-1] - f[1] / f[2]) / (f[3] / f[4]), 
+            0: lambda: (f[1] + f[3] / f[4]) * f[5], 
+            1: lambda: (f[-1] - f[1] / f[2]) / (f[3] / f[4]), 
             2: lambda: f[6] / (f[1] + f[3] * f[4] / f[5]), 
             3: lambda: -f[0] + f[1] - f[2] + f[3], 
             4: lambda: f[0] - f[1] - f[2] + f[3],
             5: lambda: f[0] / f[1],
             6: lambda: f[0] * f[1],
             7: lambda: (f[1] - f[4]) / (f[2] / f[3]),
-            8: lambda: f[0] * f[0]
+            8: lambda: f[0] * f[0],
+            9: lambda: (f[2] - f[1]) / f[0]
             }
 
         self.soln = solutions[self.idx]()
@@ -97,6 +98,7 @@ class Problem(object):
     # Creates the problem statement
     def pose(self):
         self.attempt = -1
+        self.time_created = datetime.now()
         self.sec_total = 0
 
         self.previous_answers = list()
@@ -146,7 +148,6 @@ class Problem(object):
 
         now = datetime.now()
         sec_taken = round((now - self.time_posed).total_seconds())
-        self.sec_total += sec_taken
         data_attempt = {"input": input_float, "result": self.result,
                        "seconds": sec_taken}
 
@@ -161,15 +162,15 @@ class Problem(object):
             # Adds general info about the problem if this is the first attempt
             if self.attempt == 0:
                 data_problem = {
-                     "date": now.strftime("%m/%d/%Y"), 
-                     "time": now.strftime("%I:%M %p"), 
+                     "date": self.time_created.strftime("%m/%d/%Y"), 
+                     "time": self.time_created.strftime("%I:%M %p"), 
                      "index": self.idx, "solution": self.soln, 
                      "total seconds": self.sec_total, 
                      "num attempts": 0, "attempts": list()
                     }
                 history.append(data_problem)
 
-            history[-1]["total seconds"] = self.sec_total
+            history[-1]["total seconds"] += sec_taken
             history[-1]["num attempts"] = self.attempt + 1
             history[-1]["attempts"].append(data_attempt)
 

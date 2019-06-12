@@ -42,6 +42,7 @@ class Window(QWidget):
 
         # Problem statement label
         self.lbl_statement = QLabel(self.problem.statement)
+        self.lbl_statement.setWordWrap(True)
         self.layout.addWidget(self.lbl_statement)
         
         
