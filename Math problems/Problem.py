@@ -44,14 +44,13 @@ class Problem(object):
         filler_templates.append(elt)
 
     def __init__(self):
-        self.idx = random.randint(0, len(self.problems) - 1)
+        self.idx = random.randint(0, Problem.num_problems - 1)
         self.filler = tuple()
         self.statement = str()
         self.soln, self.soln_frac = int(), str()
 
         self.attempt = -1
-        self.time_posed, self.sec_total = int(), int()
-        self.time_created = datetime.now()
+        self.time_posed = int()
 
         self.pose()
         self.result = str()
@@ -60,7 +59,7 @@ class Problem(object):
     def solve(self):
         f = self.filler
         solutions = {
-            0: lambda: (f[1] + f[3] / f[4]) * f[5], 
+            0: lambda: f[1] * (1 + f[3] / f[4]) * f[5], 
             1: lambda: (f[-1] - f[1] / f[2]) / (f[3] / f[4]), 
             2: lambda: f[6] / (f[1] + f[3] * f[4] / f[5]), 
             3: lambda: -f[0] + f[1] - f[2] + f[3], 
@@ -78,7 +77,8 @@ class Problem(object):
     # Randomly generates numbers and names for the problem
     def generate_filler(self):
         number_range = tuple(i for i in range(-20, 11) if i <= -3 or 3 <= i) \
-                       if self.idx in Problem.provide_negatives else range(3, 21)
+                             if self.idx in Problem.provide_negatives \
+                             else range(3, 21)
         filler = list()
 
         for elt in Problem.filler_templates[self.idx]:
@@ -98,8 +98,6 @@ class Problem(object):
     # Creates the problem statement
     def pose(self):
         self.attempt = -1
-        self.time_created = datetime.now()
-        self.sec_total = 0
 
         self.previous_answers = list()
         self.generate_filler()
@@ -121,35 +119,43 @@ class Problem(object):
             if " " in input:
                 input_float = input.partition(" ")
                 frac = tuple(int(x) for x in input_float[2].split("/"))
-                input_float = float(int(input_float[0]) + Fraction(
-                               input_float[2]).limit_denominator())
-            else:
+                mixed_frac_part = Fraction(input_float[2]).limit_denominator()
+                input_float = float(int(input_float[0]) + mixed_frac_part)
+            elif "/" in input:
                 frac = tuple(int(x) for x in input.split("/"))
                 input_float = float(Fraction(input).limit_denominator())
+            else:
+                input_float = float(input)
 
         except ValueError:
             self.result = "ValueError"
             return
 
-        # Checks answer if it parsed successfully
-        if len(frac) >= 2 and gcd(frac[0], frac[1]) > 1:
-            self.result = "incorrect"
-        elif abs(input_float - self.soln) < ERROR_MARGIN:
+        # Checks answer if it was parsed successfully.
+        if abs(input_float - self.soln) < ERROR_MARGIN: 
             self.result = "correct"
         else:
             self.result = "incorrect"
-            self.previous_answers.append(input)
 
+        # Correct answers must be simplified.
+        if "/" in input:
+            improper_unsimplified = len(frac) >= 2 and gcd(frac[0], frac[1]) > 1
+            mixed_unsimplified = " " in input and mixed_frac_part >= 1
+            
+            if improper_unsimplified or mixed_unsimplified:
+                self.result = "incorrect"
+
+        self.previous_answers.append(input)
         self.attempt += 1
-        self.save_result(input_float)
+        self.save_result(input, input_float)
 
     # Appends the result as a dictionary to a list in the json file
-    def save_result(self, input_float):
+    def save_result(self, input, input_float):
 
         now = datetime.now()
         sec_taken = round((now - self.time_posed).total_seconds())
-        data_attempt = {"input": input_float, "result": self.result,
-                       "seconds": sec_taken}
+        data_attempt = {"float input": input_float, "raw input": input,
+                        "result": self.result, "seconds": sec_taken}
 
         try:
             with open(HISTORY_FILE_NAME) as history_file:
@@ -162,11 +168,10 @@ class Problem(object):
             # Adds general info about the problem if this is the first attempt
             if self.attempt == 0:
                 data_problem = {
-                     "date": self.time_created.strftime("%m/%d/%Y"), 
-                     "time": self.time_created.strftime("%I:%M %p"), 
+                     "date": self.time_posed.strftime("%m/%d/%Y"), 
+                     "time": self.time_posed.strftime("%I:%M %p"), 
                      "index": self.idx, "solution": self.soln, 
-                     "total seconds": self.sec_total, 
-                     "num attempts": 0, "attempts": list()
+                     "total seconds": 0, "num attempts": 0, "attempts": list()
                     }
                 history.append(data_problem)
 

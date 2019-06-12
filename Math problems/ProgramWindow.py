@@ -26,15 +26,16 @@ class Window(QWidget):
         self.layout_submission = QHBoxLayout()
 
         self.lbl_input_info = QLabel("Answer:")
-        self.layout_submission.addWidget(self.lbl_input_info)
-
-        self.edit_input = QLineEdit()
-        self.layout_submission.addWidget(self.edit_input)
-
+        
         self.btn_submit = QPushButton("Check answer")   
         self.btn_submit.setMaximumSize(500, 100)
-        print(self.edit_input.text())
         self.btn_submit.clicked.connect(lambda: self.check(self.edit_input.text()))
+
+        self.edit_input = QLineEdit()
+        self.edit_input.returnPressed.connect(self.btn_submit.click)
+
+        self.layout_submission.addWidget(self.lbl_input_info)
+        self.layout_submission.addWidget(self.edit_input)
         self.layout_submission.addWidget(self.btn_submit)
         
         self.layout.addLayout(self.layout_submission)
