@@ -50,7 +50,7 @@ class Problem(object):
         self.soln, self.soln_frac = int(), str()
 
         self.attempt = -1
-        self.time_posed = int()
+        self.time_posed, self.time_last_attempt = int(), int()
 
         self.pose()
         self.result = str()
@@ -110,7 +110,8 @@ class Problem(object):
             self.solve()
 
         self.statement = Problem.problems[self.idx].format(*self.filler)
-        self.time_posed = datetime.now()
+
+        self.time_posed = self.time_last_attempt = datetime.now()
 
     # Checks the user input against the soulution and saves the result.
     def check(self, input):
@@ -147,13 +148,12 @@ class Problem(object):
 
         self.previous_answers.append(input)
         self.attempt += 1
-        self.save_result(input, input_float)
 
-    # Appends the result as a dictionary to a list in the json file
-    def save_result(self, input, input_float):
 
+        # Saves result using json
         now = datetime.now()
-        sec_taken = round((now - self.time_posed).total_seconds())
+        sec_taken = round((now - self.time_last_attempt).total_seconds())
+
         data_attempt = {"float input": input_float, "raw input": input,
                         "result": self.result, "seconds": sec_taken}
 
@@ -180,3 +180,5 @@ class Problem(object):
             history[-1]["attempts"].append(data_attempt)
 
             json.dump(history, history_file, indent=4)
+            
+        self.time_last_attempt = now
