@@ -17,16 +17,17 @@ class Problem(object):
         2: "{0:s} mows {1:d} lawns an hour. {2:s} mowes {3:d} lawns every {4:d}/{5:d} hours. How long until they mow {6:d} lawns?",
         3: "-{:d}+{:d}-{:d}+{:d}", 4: "{:d}-{:d}-{:d}+{:d}", 5: "{:d}/{:d}", 6: "{:d}*{:d}",
         7: "{0:s}'s cup has {1:d} mL of water and leaks {2:d}/{3:d} mL per second. How long until {0:s} has {4:d} mL of water left?",
-        8: "What is {:d} squared?", 9: "Solve for x. {:d}x + {:d} = {:d}"
+        8: "What is {:d} squared?", 9: "Solve for x.    {:d}x + {:d} = {:d}"
         }  
 
 
+    exclude = tuple()
     normal_solutions = (0, 1, 2, 7)
     provide_negatives = (3, 4, 5, 6, 8)
     num_problems = len(problems)
     filler_templates = list()
 
-    # Creates a template for each question for generat_filler() to use
+    # Creates a template for each question for generate_filler() to use
     for elt in problems.values():
         elt = re.findall("\{.*?\}", elt)
         already_filled = set()
@@ -44,7 +45,8 @@ class Problem(object):
         filler_templates.append(elt)
 
     def __init__(self):
-        self.idx = random.randint(0, Problem.num_problems - 1)
+        self.idx = random.choice(tuple(i for i in range(0, Problem.num_problems 
+                                        - 1) if i not in Problem.exclude))
         self.filler = tuple()
         self.statement = str()
         self.soln, self.soln_frac = int(), str()
