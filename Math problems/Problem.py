@@ -63,7 +63,7 @@ class Problem(object):
         solutions = {
             0: lambda: f[1] * (1 + f[3] / f[4]) * f[5], 
             1: lambda: (f[-1] - f[1] / f[2]) / (f[3] / f[4]), 
-            2: lambda: f[6] / (f[1] + f[3] * f[4] / f[5]), 
+            2: lambda: f[6] / (f[1] + f[3] / (f[4] / f[5])), 
             3: lambda: -f[0] + f[1] - f[2] + f[3], 
             4: lambda: f[0] - f[1] - f[2] + f[3],
             5: lambda: f[0] / f[1],
