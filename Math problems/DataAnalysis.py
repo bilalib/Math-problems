@@ -6,7 +6,7 @@ from Problem import Problem
 HISTORY_FILE_NAME = "history_json.txt"
 GRAPH_ROWS = 2
 GRAPH_COLS = 2
-
+ERROR_MARGIN = 0.1
 
 def analyze():
     
@@ -28,6 +28,11 @@ def analyze():
     attempt_times = np.zeros(3, dtype=np.float)
     attempt_counts = np.zeros(3, dtype=np.int)
 
+    # Stores per-answer distance measurements
+    solutions = list()
+    attempt_dists = list()
+    result_colors = list()
+
     # Gets all required vaules for all charts
     for problem in history:
 
@@ -40,25 +45,38 @@ def analyze():
             day_total.append(0)
         
         idx = problem["index"]
+        solution = problem["solution"]
         
         # Iterates through each attempt, getting all values for all charts
         for i, attempt in enumerate(problem["attempts"]):
 
+            result = attempt["result"]
             # Gets per-day result totals
-            if attempt["result"] == "correct":
+            if result == "correct":
                 day_correct[-1] += 1
             else:
                 day_incorrect[-1] += 1
             day_total[-1] += 1
 
             # Gets per-question result totals
-            if attempt["result"] == "correct":
+            if result == "correct":
                 pblm_correct[idx] += 1
             pblm_total[idx] += 1
 
             # Gets per-attempt-number time totals
             attempt_times[i] += attempt["seconds"]
             attempt_counts[i] += 1
+
+            # Gets per-answer distance measurements
+            solutions.append(solution)
+            float_input = attempt["float input"]
+            attempt_dists.append(abs(solution - float_input))
+            if result == "correct":
+                result_colors.append("g")
+            elif abs(float_input - solution) < ERROR_MARGIN:
+                result_colors.append("gold")
+            else:
+                result_colors.append("r")
 
 
     # Plotting the data
@@ -74,7 +92,7 @@ def analyze():
 
     axes[0][0].plot(dates, day_correct, color = "green", marker="o")
     axes[0][0].plot(dates, day_incorrect, color = "red", marker="o")
-    axes[0][0].plot(dates, day_total, color = "blue", marker="o")
+    axes[0][0].plot(dates, day_total, marker="o")
     axes[0][0].legend(["correct", "incorrect", "total"])
 
     axes[0][0].set_xlabel("Dates")
@@ -110,6 +128,17 @@ def analyze():
     for i, height in enumerate(avg_attempt_times):
         # Provides number of times student got to attempt number at top
         axes[1][0].text(attempt_numbers[i] - .02, height + .05, str(attempt_counts[i]))
+
+
+    # Per-answer distance scatterplot
+    axes[1][1].scatter(solutions, attempt_dists, c=result_colors, s=20)
+
+    axes[1][1].set_xlabel("Solution")
+    axes[1][1].set_title("Distance from answer vs solution")
+
+    # Moves y-axis to center
+    axes[1][1].spines['left'].set_position('zero')
+    axes[1][1].spines['right'].set_color('none')
 
 
     return fig
