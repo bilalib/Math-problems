@@ -1,3 +1,4 @@
+from Settings import *
 from Problem import Problem
 import sys
 from PyQt5.QtWidgets import (QApplication, QWidget, QLineEdit, QPushButton,
@@ -70,14 +71,14 @@ class Window(QWidget):
             self.problem = Problem()
             self.lbl_statement.setText(self.problem.statement)
         if self.problem.result == "incorrect":
-            if self.problem.attempt == 2:
+            if self.problem.attempt == MAX_ATTEMPTS - 1:
                 self.problem.pose()
                 self.lbl_statement.setText(self.problem.statement)
                 self.lbl_message.setText("Incorrect. All attempts used. Numbers changed.")
             else:
                 self.lbl_message.setText("Incorrect. Attempt " + 
                                          str(self.problem.attempt + 1) + 
-                                         "/3. Previous answers: " + 
+                                         "/" + MAX_ATTEMPTS + ". Previous answers: " + 
                                          ", ".join(self.problem.previous_answers))
 
 

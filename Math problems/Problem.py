@@ -1,3 +1,4 @@
+from Settings import *
 import random
 import names
 from fractions import Fraction
@@ -5,9 +6,6 @@ import re
 import json
 from datetime import datetime
 from math import gcd
-
-HISTORY_FILE_NAME = "history_json.txt"
-ERROR_MARGIN = 0.1
 
 class Problem(object):
 

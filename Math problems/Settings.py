@@ -1,0 +1,3 @@
+ERROR_MARGIN = 0.1
+HISTORY_FILE_NAME = "history_json.txt"
+MAX_ATTEMPTS = 3

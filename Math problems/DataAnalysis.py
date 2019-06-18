@@ -1,3 +1,4 @@
+from Settings import *
 from pylab import *
 import seaborn as sns
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -5,8 +6,6 @@ import json
 from Problem import Problem
 from datetime import datetime
 
-
-ERROR_MARGIN = 0.1
 
 def analyze(history_file_name, min_date):
     
