@@ -78,7 +78,7 @@ class Window(QWidget):
             else:
                 self.lbl_message.setText("Incorrect. Attempt " + 
                                          str(self.problem.attempt + 1) + 
-                                         "/" + MAX_ATTEMPTS + ". Previous answers: " + 
+                                         "/" + str(MAX_ATTEMPTS) + ". Previous answers: " + 
                                          ", ".join(self.problem.previous_answers))
 
 

@@ -110,8 +110,8 @@ def analyze(history_file_name, min_date):
     axes[0][0].legend(["correct", "incorrect", "total"])
 
     axes[0][0].set_xlabel("Dates")
-    axes[0][0].set_ylabel("Total")
-    axes[0][0].set_title("Per-day totals")
+    axes[0][0].set_ylabel("Total attempts")
+    axes[0][0].set_title("Per-day attempt totals")
 
 
     # Per-question bar graph
