@@ -6,6 +6,8 @@ import json
 from Problem import Problem
 from datetime import datetime
 
+# The amount of days the Per-Question bar graph should reflect. 0 => All days
+LAST_N_DAYS = 3
 
 def analyze(history_file_name, min_date):
     
@@ -118,12 +120,14 @@ def analyze(history_file_name, min_date):
     problem_indexes = range(Problem.num_problems)
     pblm_total[pblm_total == 0] = 1
     avg_correct = pblm_correct / pblm_total
-    axes[0][1].bar(problem_indexes, avg_correct, align="center")
+    last_n = max(-LAST_N_DAYS, -len(problem_indexes))
+    axes[0][1].bar(problem_indexes[last_n:], avg_correct[last_n:])
     axes[0][1].set_xticks(problem_indexes)
 
     axes[0][1].set_xlabel("Problem index")
     axes[0][1].set_ylabel("Correct / incorrect ratio")
-    axes[0][1].set_title("Per-problem scores")
+    axes[0][1].set_title("Per-problem scores in last " 
+                         + str(LAST_N_DAYS) + " days")
 
     # Provides the total problem attempts at top
     for i, height in enumerate(avg_correct):
@@ -170,3 +174,5 @@ def analyze(history_file_name, min_date):
 
 
     return fig
+
+analyze("history_json.txt", "06/16/2019").savefig("figure", bbox_inches='tight')

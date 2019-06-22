@@ -15,13 +15,13 @@ class Problem(object):
         2: "{0:s} mows {1:d} lawns an hour. {2:s} mowes {3:d} lawns every {4:d}/{5:d} hours. How long until they mow {6:d} lawns?",
         3: "-{:d}+{:d}-{:d}+{:d}", 4: "{:d}-{:d}-{:d}+{:d}", 5: "{:d}/{:d}", 6: "{:d}*{:d}",
         7: "{0:s}'s cup has {1:d} mL of water and leaks {2:d}/{3:d} mL per second. How long until {0:s} has {4:d} mL of water left?",
-        8: "What is {:d} squared?", 9: "Solve for x.    {:d}x + {:d} = {:d}"
+        8: "What is {:d} squared?", 9: "Solve for x.    {:d}/{:d}x + {:d} = {:d}", 10: "Solve for x.    {:d}x + {:d} = {:d} + {:d}x"
         }  
 
 
-    exclude = tuple()
-    normal_solutions = (0, 1, 2, 7)
-    provide_negatives = (3, 4, 5, 6, 8)
+    exclude = {6, 8}
+    normal_solutions = {0, 1, 2, 7}
+    provide_negatives = {3, 4, 5, 6, 8}
 
     num_problems = len(problems)
     filler_templates = list()
@@ -44,8 +44,8 @@ class Problem(object):
         filler_templates.append(elt)
 
     def __init__(self):
-        self.idx = random.choice(tuple(i for i in range(0, Problem.num_problems 
-                                        - 1) if i not in Problem.exclude))
+        self.idx = random.choice(tuple(i for i in range(Problem.num_problems)
+                                      if i not in Problem.exclude))
         self.filler = tuple()
         self.statement = str()
         self.soln, self.soln_frac = int(), str()
@@ -69,7 +69,8 @@ class Problem(object):
             6: lambda: f[0] * f[1],
             7: lambda: (f[1] - f[4]) / (f[2] / f[3]),
             8: lambda: f[0] * f[0],
-            9: lambda: (f[2] - f[1]) / f[0]
+            9: lambda: (f[3] - f[2]) * (f[1] / [0]),
+            10: lambda: (f[2] - f[1]) / (f[0] - f[3])
             }
 
         self.soln = solutions[self.idx]()
@@ -163,23 +164,22 @@ class Problem(object):
                 history = json.load(history_file)
         except (EOFError, ValueError, FileNotFoundError) as _:
             history = list()
+            
+        # Adds general info about the problem if this is the first attempt
+        if self.attempt == 0:
+            data_problem = {
+                    "date": self.time_posed.strftime("%m/%d/%Y"), 
+                    "time": self.time_posed.strftime("%I:%M %p"), 
+                    "index": self.idx, "solution": self.soln, 
+                    "total seconds": 0, "num attempts": 0, "attempts": list()
+                }
+            history.append(data_problem)
+
+        history[-1]["total seconds"] += sec_taken
+        history[-1]["num attempts"] = self.attempt + 1
+        history[-1]["attempts"].append(data_attempt)
 
         with open(HISTORY_FILE_NAME, "w") as history_file:
-            
-            # Adds general info about the problem if this is the first attempt
-            if self.attempt == 0:
-                data_problem = {
-                     "date": self.time_posed.strftime("%m/%d/%Y"), 
-                     "time": self.time_posed.strftime("%I:%M %p"), 
-                     "index": self.idx, "solution": self.soln, 
-                     "total seconds": 0, "num attempts": 0, "attempts": list()
-                    }
-                history.append(data_problem)
-
-            history[-1]["total seconds"] += sec_taken
-            history[-1]["num attempts"] = self.attempt + 1
-            history[-1]["attempts"].append(data_attempt)
-
             json.dump(history, history_file, indent=4)
             
         self.time_last_attempt = now
