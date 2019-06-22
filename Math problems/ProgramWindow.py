@@ -65,20 +65,30 @@ class Window(QWidget):
         self.edit_input.clear()
         self.problem.check(input)
         if self.problem.result == "ValueError":
-            self.lbl_message.setText("Error: Bad input.")
-        if self.problem.result == "correct":
+            message = "Error: Bad input."
+            if self.problem.attempt  > -1:
+                message += (" " * 5 + "Attempt " + str(self.problem.attempt + 1) 
+                            + "/" + str(MAX_ATTEMPTS) + "." + " " * 5 + 
+                            "Previous answers: " 
+                            + ", ".join(self.problem.previous_answers))
+            self.lbl_message.setText(message)
+
+        elif self.problem.result == "correct":
             self.lbl_message.setText("Correct! Moving to next question.")
             self.problem = Problem()
             self.lbl_statement.setText(self.problem.statement)
-        if self.problem.result == "incorrect":
+
+        elif self.problem.result == "incorrect":
             if self.problem.attempt == MAX_ATTEMPTS - 1:
                 self.problem.pose()
                 self.lbl_statement.setText(self.problem.statement)
                 self.lbl_message.setText("Incorrect. All attempts used. Numbers changed.")
+
             else:
-                self.lbl_message.setText("Incorrect. Attempt " + 
-                                         str(self.problem.attempt + 1) + 
-                                         "/" + str(MAX_ATTEMPTS) + ". Previous answers: " + 
+                self.lbl_message.setText("Incorrect." + " " * 5 +  "Attempt " + 
+                                         str(self.problem.attempt + 1) + "/" + 
+                                         str(MAX_ATTEMPTS) + "." + " " * 5 + 
+                                         "Previous answers: " + 
                                          ", ".join(self.problem.previous_answers))
 
 

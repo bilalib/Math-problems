@@ -69,7 +69,7 @@ class Problem(object):
             6: lambda: f[0] * f[1],
             7: lambda: (f[1] - f[4]) / (f[2] / f[3]),
             8: lambda: f[0] * f[0],
-            9: lambda: (f[3] - f[2]) * (f[1] / [0]),
+            9: lambda: (f[3] - f[2]) * (f[1] / f[0]),
             10: lambda: (f[2] - f[1]) / (f[0] - f[3])
             }
 
