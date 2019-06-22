@@ -21,7 +21,7 @@ class Problem(object):
 
     exclude = {6, 8}
     normal_solutions = {0, 1, 2, 7}
-    provide_negatives = {3, 4, 5, 6, 8}
+    provide_negatives = {3, 4, 5, 6, 8, 9, 10}
 
     num_problems = len(problems)
     filler_templates = list()
