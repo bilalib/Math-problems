@@ -22,6 +22,7 @@ class Problem(object):
     exclude = {6, 8}
     normal_solutions = {0, 1, 2, 7}
     provide_negatives = {3, 4, 5, 6, 8, 9, 10}
+    no_repeats = {10}
 
     num_problems = len(problems)
     filler_templates = list()
@@ -46,7 +47,7 @@ class Problem(object):
     def __init__(self):
         self.idx = random.choice(tuple(i for i in range(Problem.num_problems)
                                       if i not in Problem.exclude))
-        self.filler = tuple()
+        self.filler = list()
         self.statement = str()
         self.soln, self.soln_frac = int(), str()
 
@@ -78,11 +79,10 @@ class Problem(object):
     
     # Randomly generates numbers and names for the problem
     def generate_filler(self):
-        number_range = tuple(i for i in range(-20, 11) if i <= -3 or 3 <= i) \
+        number_range = list(i for i in range(-20, 11) if i <= -3 or 3 <= i) \
                              if self.idx in Problem.provide_negatives \
-                             else range(3, 21)
-        filler = list()
-
+                             else list(range(3, 21))
+        
         for elt in Problem.filler_templates[self.idx]:
             if elt[1] == "s":
                 fill_value = names.get_first_name()
@@ -93,9 +93,10 @@ class Problem(object):
                 fill_value = events.get(event, "") + fill_value
             else:
                 fill_value = random.choice(number_range)
-            filler.append(fill_value)
+                if self.idx in Problem.no_repeats:
+                    number_range.remove(fill_value)
 
-        self.filler = filler
+            self.filler.append(fill_value)
     
     # Creates the problem statement
     def pose(self):
